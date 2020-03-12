@@ -1,8 +1,74 @@
 #AKALIRIS
+CMEANS
+
+library(clv)
+data(iris)
+data <- iris[,1:4]
+
+p<-function(k){
+  # cluster data
+  agnes.mod <- agnes(data) # create cluster tree
+  v.pred <- as.integer(cutree(agnes.mod,k)) # "cut" the tree
+ 
+  intraclust = "centroid"
+  interclust = "centroid"
+ 
+  # compute Dunn indicies (also Davies-Bouldin indicies)
+  # 1. optimal solution:
+ 
+  # compute intercluster distances and intracluster diameters
+  cls.scatt <- cls.scatt.data(data, v.pred, dist="manhattan")
+  return(v.pred)
+}
+
+# once computed valuse use in both functions
+dunn1 <- clv.Dunn(cls.scatt, intraclust, interclust)
+davies1 <- clv.Davies.Bouldin(cls.scatt, intraclust, interclust)
+
+# 2. functional solution:
+
+# define new Dunn and Davies.Bouldin functions
+Dunn <- function(data,clust)
+  clv.Dunn( cls.scatt.data(data,clust),
+            intracls = "centroid",
+            intercls = "centroid"
+  )
+Davies.Bouldin <- function(data,clust)
+  clv.Davies.Bouldin( cls.scatt.data(data,clust),
+                      intracls = "centroid",
+                      intercls = "centroid"
+  )
+
+# compute indicies
+DIfnc<-function(k){
+  dunn2 <- Dunn(data, p(k))
+}
+DBfnc<-function(k){
+  davies2 <- Davies.Bouldin(data, p(k))
+}
+
+DI<-c()
+DB<-c()
+
+for(i in 2:10){
+  DI<-c(DI,DIfnc(i))
+}
+
+for(i in 2:10){
+  DB<-c(DB,DBfnc(i))
+}
+
+plot(c(2:10),DB,type="o")
+plot(c(2:10),DI,type="o")
+
+CMEANS
+
+#check plot
+#check for Iris
 par(mfrow=c(2,2))
 library(philentropy)
 it=1
-eps=3
+eps=0.1
 m=2
 no_of_clusters=3
 no_of_dimensions=4
@@ -30,7 +96,7 @@ clusters
 centroid<-c()
 
 repeat{
-  
+ 
   #step2
   prev_centroid=centroid
   centroid<-c()
@@ -43,7 +109,7 @@ repeat{
   }
   rownames(centroid)<-c()
   centroid
-  
+ 
   #step3
   dissimilarity<-c()
   for(i in 1:no_of_clusters){
@@ -55,13 +121,13 @@ repeat{
   }
   colnames(dissimilarity)<-c()
   dissimilarity
-  
+ 
   #step4
   for(i in 1:nrow(dissimilarity)){
     dissimilarity[i,]=((1/dissimilarity[i,])/sum(1/dissimilarity[i,]))
   }
   dissimilarity
-  
+ 
   cat('Iteration',it,'\n')
   print(cbind(datapoints,clusters,dissimilarity))
   #plot(1:150,rowMax(dissimilarity))
@@ -74,10 +140,10 @@ repeat{
            labels=no_of_clusters, lines=0)
   ########
   clusters=dissimilarity
-  
+ 
   #exit condition
   it=it+1
-  if(it==3){
+  if(it>=3){
     flag=0
     for(i in 1:no_of_clusters){
       if(distance(rbind(centroid[i,],prev_centroid[i,]),method="euclidean")<eps){
@@ -89,6 +155,7 @@ repeat{
     }
   }
 }
+
 
 #AKALCMEANS
 library(philentropy)
